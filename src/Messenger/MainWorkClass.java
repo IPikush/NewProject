@@ -1,35 +1,38 @@
 package Messenger;
 
-import Exceptions.AlreadySignedUpException;
-import Exceptions.ContactAlreadyInChatException;
 import Exceptions.NoConnectionException;
 
-import java.util.Scanner;
+import java.util.*;
 
 public class MainWorkClass {
     public static void main(String[] args) {
-        Users[] test = new Contact[2];
+
         Users testContact = new Contact("test contact", "test", StatusEnum.ONLINE, "+380556546846");
-        test[0] = testContact;
+
         Users testContact2 = new Contact("second contact", "secondTest", StatusEnum.INVISIBLE, "+385224565125");
-        test[1] = testContact2;
         Users activeUser = new User("Test Active User", "testuser", "passw123us", "test@test.com");
+        checkSignUp((User) activeUser);
+        ((User) activeUser).signIn();
+        List<Users>  contacts= new ArrayList<>();
+        contacts.add(testContact);
+        contacts.add(testContact2);
+        PrivateChat newChat = new PrivateChat(activeUser, contacts.get(0));
+        PrivateChat myNewChat = new PrivateChat(activeUser, contacts.get(1));
+        GroupChat myGroupChat = new GroupChat(activeUser, contacts);
 
-        try {
-            checkSignUp((User) activeUser);
-        } catch (AlreadySignedUpException e) {
-            System.err.println(e.toString());
-        } finally {
-            ((User) activeUser).signIn();
-        }
+        Map<Chat,List<Users>> chats= new HashMap<>();
+        chats.put(newChat, Collections.singletonList(contacts.get(0)));
+        chats.put(myNewChat, Collections.singletonList(contacts.get(1)));
+        chats.put(myGroupChat, contacts);
 
-        System.out.println("Select chat or contact to connect with \n" + "1." + testContact.fullName + "\n" + "2." +
-                testContact2.fullName + "\n" + "3.Group chat with " + testContact.fullName + " and " + testContact2.fullName);
+
+        System.out.println("Select chat or contact to connect with \n" + "1." + chats.get(newChat).get(0).fullName + "\n" + "2." +
+                chats.get(myNewChat).get(0).fullName + "\n" + "3.Group chat with " + chats.get(myGroupChat).get(0).fullName + " and " +
+                chats.get(myGroupChat).get(1).fullName);
         Scanner in = new Scanner(System.in);
         String chat = in.nextLine();
         switch (chat) {
             case "1":
-                PrivateChat newChat = new PrivateChat(activeUser, testContact);
                 System.out.println("Enter your message");
                 String message = in.nextLine();
                 Message newMessage = new Message(message);
@@ -39,7 +42,6 @@ public class MainWorkClass {
                 newChat.receiveMessage(testContact, messageFromContact);
                 break;
             case "2":
-                PrivateChat myNewChat = new PrivateChat(activeUser, testContact2);
                 System.out.println("Enter your message");
                 String otherMessage = in.nextLine();
                 Message myNewMessage = new Message(otherMessage);
@@ -53,22 +55,14 @@ public class MainWorkClass {
                 }
                 break;
             case "3":
-                GroupChat myGroupChat = new GroupChat(activeUser, (Contact[]) test);
-
                 System.out.println("Enter your message");
                 String messageToGroup = in.nextLine();
-
                 Message mesToGroup = new Message(messageToGroup);
                 myGroupChat.sendMessage(activeUser, mesToGroup);
                 //and we can delete message from a chat:
                 myGroupChat.removeMessage(activeUser, mesToGroup);
-                try {
-                    checkContactInChat((Contact) test[0], myGroupChat);
-                } catch (ContactAlreadyInChatException e) {
-                    System.out.println(e.toString());//I used "out" here, because "err" outputs text later than "finally"
-                } finally {
-                    myGroupChat.removeParticipant(test[0]);
-                }
+                checkContactInChat((Contact) contacts.get(0), myGroupChat);
+                myGroupChat.removeParticipant(contacts.get(0));
                 break;
             default:
                 System.out.println("You have 3 chats");
@@ -76,23 +70,23 @@ public class MainWorkClass {
         }
     }
 
-    private static void checkSignUp(User test) throws AlreadySignedUpException {
+    private static void checkSignUp(User test) {
         if (test.email == null) {
             test.signUp();
         } else {
-            throw new AlreadySignedUpException("This user is already signed up");
+            System.out.println(test.fullName+ " is already signed up");
         }
 
     }
 
-    private static void checkContactInChat(Contact testcontact, GroupChat chat) throws ContactAlreadyInChatException {
-        if (chat.contact[0].equals(testcontact)) {
-            throw new ContactAlreadyInChatException("This contact is already in chat");
+    private static void checkContactInChat(Contact testcontact, GroupChat chat)  {
+
+        if (chat.contact.get(0).equals(testcontact)) {
+            System.out.println(testcontact.fullName+" is already in chat");
         } else {
             chat.addParticipant(testcontact);
-        }
+        }}
 
-    }
 
     private static void checkConnection(boolean connection) throws NoConnectionException {
         if (connection == true) {

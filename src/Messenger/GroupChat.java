@@ -1,11 +1,12 @@
 package Messenger;
 
-public class GroupChat implements Chat{
-    Users user;
-    Contact[] contact;
+import java.util.List;
 
-    public GroupChat(Users user, Contact[] contact) {
-        this.user = user;
+public class GroupChat extends PrivateChat implements Chat{
+    List<Users> contact;
+
+    public GroupChat(Users user, List<Users> contact) {
+        super(user);
         this.contact = contact;
     }
     @Override

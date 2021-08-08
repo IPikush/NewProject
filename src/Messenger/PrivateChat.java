@@ -9,6 +9,10 @@ public class PrivateChat implements Chat{
         this.contact = contact;
     }
 
+    public PrivateChat(Users user) {
+        this.user=user;
+    }
+
     @Override
     public void sendMessage(Users sendler, Message text) {
         System.out.println(sendler.fullName  + " sent a message " + text.textMessage+" to "+contact.fullName);
